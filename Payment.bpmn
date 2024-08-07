@@ -17,17 +17,11 @@
       <bpmn:incoming>Flow_15d0kch</bpmn:incoming>
       <bpmn:outgoing>Flow_056mvh2</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="Event_03bvprt" name="Payment completed">
-      <bpmn:incoming>Flow_056mvh2</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:exclusiveGateway id="Gateway_1xthnkz" name="Credit sufficient?">
       <bpmn:incoming>Flow_15c9io5</bpmn:incoming>
       <bpmn:outgoing>Flow_1qqxzyh</bpmn:outgoing>
       <bpmn:outgoing>Flow_128mjtf</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:startEvent id="Event_19qu0oi" name="Payment requested">
-      <bpmn:outgoing>Flow_0b7gmku</bpmn:outgoing>
-    </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_1hu6sex" name="Deduct credit">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="credit-deduction" />
@@ -50,31 +44,23 @@
       <bpmn:incoming>Flow_128mjtf</bpmn:incoming>
       <bpmn:outgoing>Flow_08yvuv1</bpmn:outgoing>
     </bpmn:scriptTask>
+    <bpmn:startEvent id="Event_19qu0oi" name="Payment requested">
+      <bpmn:outgoing>Flow_0b7gmku</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_12p9lhh" messageRef="Message_3cqm66b" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_03bvprt" name="Payment completed">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="payment-completion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_056mvh2</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1nw00th" />
+    </bpmn:endEvent>
   </bpmn:process>
-  <bpmn:message id="Message_14p9pmf" name="paymentReceived">
-    <bpmn:extensionElements>
-      <zeebe:subscription correlationKey="=orderId" />
-    </bpmn:extensionElements>
-  </bpmn:message>
+  <bpmn:message id="Message_3cqm66b" name="paymentRequestMessage" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="PaymentProcess">
-      <bpmndi:BPMNShape id="Event_19qu0oi_di" bpmnElement="Event_19qu0oi">
-        <dc:Bounds x="162" y="102" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="156" y="145" width="49" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0arzlwv_di" bpmnElement="Activity_1hu6sex">
-        <dc:Bounds x="260" y="80" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_02roc4u_di" bpmnElement="Gateway_02roc4u" isMarkerVisible="true">
         <dc:Bounds x="885" y="95" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_03bvprt_di" bpmnElement="Event_03bvprt">
-        <dc:Bounds x="992" y="102" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="985" y="145" width="51" height="27" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1xthnkz_di" bpmnElement="Gateway_1xthnkz" isMarkerVisible="true">
         <dc:Bounds x="415" y="95" width="50" height="50" />
@@ -82,12 +68,27 @@
           <dc:Bounds x="469" y="93" width="82" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0arzlwv_di" bpmnElement="Activity_1hu6sex">
+        <dc:Bounds x="260" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0b8fzla_di" bpmnElement="Activity_16kuby1">
         <dc:Bounds x="700" y="190" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1n7w45s_di" bpmnElement="Activity_1cfafq9">
         <dc:Bounds x="550" y="190" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14q0db2_di" bpmnElement="Event_19qu0oi">
+        <dc:Bounds x="162" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="156" y="145" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1wa7yvx_di" bpmnElement="Event_03bvprt">
+        <dc:Bounds x="992" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="985" y="145" width="51" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_056mvh2_di" bpmnElement="Flow_056mvh2">
         <di:waypoint x="935" y="120" />

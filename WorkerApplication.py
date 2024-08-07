@@ -5,7 +5,7 @@ from pyzeebe import ZeebeClient, ZeebeWorker, create_camunda_cloud_channel, Job
 grpc_channel = create_camunda_cloud_channel(client_id="",
                                             client_secret="",
                                             cluster_id="",
-                                            region="")
+                                            region="bru-2")
 zeebe_client = ZeebeClient(grpc_channel)
 worker = ZeebeWorker(grpc_channel)
 
@@ -29,6 +29,19 @@ def handle_credit_card_charging(job: Job, cardNumber: str, cvc: str, expiryDate:
     print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
     return
 
+@worker.task("payment-invocation")
+async def handle_payment_invocation(job: Job):
+    print("Handling job: " + job.type)
+    orderId = job.variables.get("orderId")
+    await zeebe_client.publish_message("paymentRequestMessage", orderId, job.variables)
+    return
+
+@worker.task("payment-completion")
+async def handle_payment_completion(job: Job):
+    print("Handling job: " + job.type)
+    orderId: str = job.variables.get("orderId")
+    await zeebe_client.publish_message("paymentCompletedMessage", orderId)
+    return
 
 asyncio.get_event_loop().run_until_complete(worker.work())
 
