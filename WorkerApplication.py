@@ -2,10 +2,10 @@ import asyncio
 
 from pyzeebe import ZeebeClient, ZeebeWorker, create_camunda_cloud_channel, Job
 
-grpc_channel = create_camunda_cloud_channel(client_id="V7ItVeTtyA9_2gE53YC0yQoX2FVMp2cR",
-                                            client_secret="VeIO_~Wj~dgyucFJAKVi8pE7dso_Gx3VtQ.Rh11ZMk957jvsgJpf9zJ2zK4vxOPJ",
-                                            cluster_id="e39f4a7d-5d6b-447c-9878-c27048b6043f",
-                                            region="bru-2")
+grpc_channel = create_camunda_cloud_channel(client_id="",
+                                            client_secret="",
+                                            cluster_id="",
+                                            region="")
 zeebe_client = ZeebeClient(grpc_channel)
 worker = ZeebeWorker(grpc_channel)
 
