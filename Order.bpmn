@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="538c0e4" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.5.0" camunda:diagramRelationId="3a85fbc8-18a9-433e-a3ed-dd5763955cd1">
   <bpmn:process id="OrderProcess" name="Order Process" isExecutable="true">
-    <bpmn:documentation>string()</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_1" name="Order received">
       <bpmn:outgoing>Flow_0gp98d1</bpmn:outgoing>
     </bpmn:startEvent>
@@ -64,7 +63,7 @@
           <zeebe:input source="={ &#34;username&#34;: &#34;emilys&#34;, &#34;password&#34;: &#34;emilyspass&#34;}" target="body" />
         </zeebe:ioMapping>
         <zeebe:taskHeaders>
-          <zeebe:header key="resultExpression" value="={ &#34;token&#34;: body.toke }" />
+          <zeebe:header key="resultExpression" value="={ &#34;token&#34;: body.token }" />
           <zeebe:header key="retryBackoff" value="PT0S" />
         </zeebe:taskHeaders>
       </bpmn:extensionElements>
