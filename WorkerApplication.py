@@ -2,9 +2,9 @@ import asyncio
 
 from pyzeebe import ZeebeClient, ZeebeWorker, create_camunda_cloud_channel, Job
 
-grpc_channel = create_camunda_cloud_channel(client_id="",
-                                            client_secret="",
-                                            cluster_id="",
+grpc_channel = create_camunda_cloud_channel(client_id="kqX0QLAlHxz4fscNYgOkId-fuwlE7oV5",
+                                            client_secret="fkQD3xPJ3-~o3X_KnBomv7JEya9nIe6WKNqn5cBODpwXcGuLX1RDOCmYLpl_ASsr",
+                                            cluster_id="e39f4a7d-5d6b-447c-9878-c27048b6043f",
                                             region="bru-2")
 zeebe_client = ZeebeClient(grpc_channel)
 worker = ZeebeWorker(grpc_channel)
@@ -16,6 +16,16 @@ def deduct_credit(customer_id: str, amount: float):
     open_amount = amount - float(get_customer_credit(customer_id))
     return open_amount
 
+def check_expiry_date(expiry_date):
+    return len(expiry_date) == 5
+
+def charge_credit_card(card_number: str, cvc: str, expiry_date: str, order_amount: float):
+    if check_expiry_date(expiry_date):
+        print("Charging credit card with number " + card_number + ", cvc " + cvc + ", expiry date " + expiry_date)
+    else:
+        raise Exception("Invalid expiry date: " + expiry_date)
+    return
+
 @worker.task("credit-deduction")
 def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     print("Handling job: " + job.type)
@@ -23,10 +33,14 @@ def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     customer_credit = get_customer_credit(customerId)
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
-@worker.task("credit-card-charging")
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: str, expiryDate: str):
+async def credit_card_charging_exception_handler(exception: Exception, job: Job) -> None:
+    print(exception)
+    await job.set_failure_status(str(exception))
+
+@worker.task("credit-card-charging", credit_card_charging_exception_handler)
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: str, expiryDate: str, openAmount: float):
     print("Handling job: " + job.type)
-    print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
+    charge_credit_card(cardNumber, cvc, expiryDate, openAmount)
     return
 
 @worker.task("payment-invocation")
