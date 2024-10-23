@@ -16,14 +16,14 @@ def deduct_credit(customer_id: str, amount: float):
 router = ZeebeTaskRouter()
 
 @router.task("credit-deduction")
-def deduct_credit(job: Job, customerId: str, orderTotal: float):
+def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     print(f"Handling job: {job.type}")
     open_amount = deduct_credit(customerId, orderTotal)
     customer_credit = get_customer_credit(customerId)
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
-@router.task("credit-card-charging", cardNumber: str, cvc: int, expiryDate: )
-def credit_card_charge(job: Job):
+@router.task("credit-card-charging")
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str):
     print(f"Handling job: {job.type}")
     print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
     return
