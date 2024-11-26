@@ -1,13 +1,9 @@
 import asyncio
+import logging
+from pyzeebe import ZeebeClient, ZeebeWorker, ZeebeTaskRouter, create_camunda_cloud_channel, Job, JobController
 
-from pyzeebe import ZeebeClient, ZeebeWorker, create_camunda_cloud_channel, Job
-
-grpc_channel = create_camunda_cloud_channel(client_id="",
-                                            client_secret="",
-                                            cluster_id="",
-                                            region="bru-2")
-zeebe_client = ZeebeClient(grpc_channel)
-worker = ZeebeWorker(grpc_channel)
+# Setup logging
+# logging.basicConfig(level=logging.Debug)
 
 def get_customer_credit(customer_id: str):
     return customer_id[-2:]
@@ -19,45 +15,57 @@ def deduct_credit(customer_id: str, amount: float):
 def check_expiry_date(expiry_date):
     return len(expiry_date) == 5
 
-def charge_credit_card(card_number: str, cvc: str, expiry_date: str, order_amount: float):
+def charge_credit_card(card_number: str, cvc: str, expiry_date: str):
     if check_expiry_date(expiry_date):
         print("Charging credit card with number " + card_number + ", cvc " + cvc + ", expiry date " + expiry_date)
     else:
         raise Exception("Invalid expiry date: " + expiry_date)
     return
 
-@worker.task("credit-deduction")
+async def credit_card_charging_exception_handler(exception: Exception, job: Job, job_controller: JobController) -> None:
+    print(exception)
+    await job_controller.set_failure_status(str(exception))
+
+# Define tasks
+router = ZeebeTaskRouter()
+
+@router.task("credit-deduction")
 def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
-    print("Handling job: " + job.type)
+    print(f"Handling job: {job.type}")
     open_amount = deduct_credit(customerId, orderTotal)
     customer_credit = get_customer_credit(customerId)
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
-async def credit_card_charging_exception_handler(exception: Exception, job: Job) -> None:
-    print(exception)
-    await job.set_failure_status(str(exception))
-
-@worker.task("credit-card-charging", credit_card_charging_exception_handler)
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: str, expiryDate: str, openAmount: float):
-    print("Handling job: " + job.type)
-    charge_credit_card(cardNumber, cvc, expiryDate, openAmount)
+@router.task("credit-card-charging", credit_card_charging_exception_handler)
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str):
+    print(f"Handling job: {job.type}")
+    charge_credit_card(cardNumber, cvc, expiryDate)
     return
 
-@worker.task("payment-invocation")
+@router.task("payment-invocation")
 async def handle_payment_invocation(job: Job):
     print("Handling job: " + job.type)
     orderId = job.variables.get("orderId")
-    await zeebe_client.publish_message("paymentRequestMessage", orderId, job.variables)
+    await zeebe_client.publish_message("paymentRequestMessage", orderId, dict(job.variables))
     return
 
-@worker.task("payment-completion")
+@router.task("payment-completion")
 async def handle_payment_completion(job: Job):
     print("Handling job: " + job.type)
     orderId: str = job.variables.get("orderId")
     await zeebe_client.publish_message("paymentCompletedMessage", orderId)
     return
 
-asyncio.get_event_loop().run_until_complete(worker.work())
+# Create a channel, the worker and include the router with tasks
+async def main():
+    global zeebe_client
+    grpc_channel = create_camunda_cloud_channel(client_id="xxx",
+                                            client_secret="xxx",
+                                            cluster_id="xxx",
+                                            region="bru-2") 
+    zeebe_client = ZeebeClient(grpc_channel)
+    worker = ZeebeWorker(grpc_channel)
+    worker.include_router(router)
+    await worker.work()
 
-
-
+asyncio.run(main())
