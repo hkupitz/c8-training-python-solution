@@ -1,23 +1,34 @@
 import asyncio
+import logging
+from pyzeebe import ZeebeClient, ZeebeWorker, ZeebeTaskRouter, create_camunda_cloud_channel, Job
 
-from pyzeebe import ZeebeClient, ZeebeWorker, create_camunda_cloud_channel, Job
+# Setup logging
+# logging.basicConfig(level=logging.Debug)
 
-grpc_channel = create_camunda_cloud_channel(client_id="",
-                                            client_secret="",
-                                            cluster_id="",
-                                            region="bru-2")
-zeebe_client = ZeebeClient(grpc_channel)
-worker = ZeebeWorker(grpc_channel)
+def get_customer_credit(customer_id: str):
+    return customer_id[-2:]
 
-@worker.task("credit-deduction")
-def deduct_credit(job: Job):
-    print("Handling job: " + job.type)
+def deduct_credit(customer_id: str, amount: float):
+    open_amount = amount - float(get_customer_credit(customer_id))
+    return open_amount
+
+# Define tasks
+router = ZeebeTaskRouter()
+
+@router.task("example-job")
+def handle_example_task(job: Job):
+    print(f"Hello world")
     return
 
-@worker.task("credit-card-charging")
-def deduct_credit(job: Job):
-    print("Handling job: " + job.type)
-    return
+# Create a channel, the worker and include the router with tasks
+async def main():
+    print("Worker starting")
+    grpc_channel = create_camunda_cloud_channel(client_id="xxx",
+                                                client_secret="xxx",
+                                                cluster_id="xxx",
+                                                region="bru-2")
+    worker = ZeebeWorker(grpc_channel)
+    worker.include_router(router)
+    await worker.work()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(worker.work())
+asyncio.run(main())
